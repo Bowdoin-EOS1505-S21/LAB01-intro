@@ -106,41 +106,30 @@ def load_mnc_profile(sgid,dive_number):
 # See LICENSE.txt
 #==========================================
 def load_hb_profile(sgid,dive_number):
-    # Wipe any previously loaded data and variables in
-    # Ferret.  These lines allow for multiple reuse of
-    # this function in a given kernel session.
-    (e_v, e_m) = pyferret.run('cancel data /all')
-    (e_v, e_m) = pyferret.run('cancel variables /all')
-    
-    # Set a shorter variable name for number of dives.
-    # If the glider data has climbs and dives, mult
-    # by 2 and subtract 1 to index just the dives.
-    dn = dive_number*2 - 1
 
-    # Load the requested data into the notebook
-    (e_v, e_m) = pyferret.run(
-        'use /mnt/courses/eos1505/sg'+str(sgid)+'/sg'+str(sgid)+'_m03.nc')
-    
-    # Assign subsets of the data in Ferret - we want to pull out
-    # just the data for this particular dive, not the whole mission.
-    (e_v, e_m) = pyferret.run('let temp = theta[l='+str(dn)+']')
-    (e_v, e_m) = pyferret.run('let salt = salinity[l='+str(dn)+']')
-    (e_v, e_m) = pyferret.run('let dens = density[l='+str(dn)+']')
-    (e_v, e_m) = pyferret.run('let dept = ctd_depth[l='+str(dn)+']')
-            
-    # Bring the data from Ferret into the Notebook
-    temp = np.squeeze(pyferret.getdata('temp',False)['data'])
-    salt = np.squeeze(pyferret.getdata('salt',False)['data'])
-    dens = np.squeeze(pyferret.getdata('dens',False)['data'])
-    dept = np.squeeze(pyferret.getdata('dept',False)['data'])
+    # Read data into a Pandas dataframe (df_)
+    # header -> to use the variable list as column headers
+    # comment -> for the trailing ** at end of .hb stations
+    # delim_whitespace -> enable whitespace delimiter
+    df_profile = pd.read_csv(
+        '/mnt/courses/eos1505/sg'+str(sgid)+'/p'+str(sgid)+str(dive_number)+'.hb',
+        header=1,
+        comment='*',  
+        delim_whitespace=True)
     
     # Filter out missing values (usually the placeholder is
-    # a very large negative number, 1e-34)
-    temp[temp<-4.0] = np.nan
-    salt[salt<0] = np.nan
-    dens[dens<900] = np.nan
+    # a very large negative number, -9)
+    df_profile_filtered = df_profile.replace(
+        to_replace=-9.0,
+        value=np.nan)
 
-    return dept, temp, salt, dens
+    de = df_profile_filtered['de']
+    te = df_profile_filtered['te']
+    sa = df_profile_filtered['sa']
+    th = df_profile_filtered['th']
+    s0 = df_profile_filtered['s0']
+    
+    return de, te, sa, th, s0
 
 #==========================================
 # Function to load global topography
