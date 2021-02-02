@@ -16,6 +16,7 @@ pyferret.addenv(FER_DIR='/mnt/local/pyferret', FER_DAT='/mnt/local/FerretDataset
 pyferret.start(journal=False, quiet=True, unmapped=True)
 import numpy as np
 import pandas as pd
+import subprocess
 
 #==========================================
 # This is a very simple function for the
@@ -129,7 +130,19 @@ def load_hb_profile(sgid,dive_number):
     th = df_profile_filtered['th']
     s0 = df_profile_filtered['s0']
     
-    return de, te, sa, th, s0
+    # Get the lon and lat associated with this profile
+    df_lonlat = pd.read_csv(
+        '/mnt/courses/eos1505/sg'+str(sgid)+'/p'+str(sgid)+str(dive_number)+'.hb',
+        nrows=1,
+        usecols=[8,9],
+        names=["lat","lon"],
+        comment='*',  
+        delim_whitespace=True)
+    
+    lon = df_lonlat['lon']
+    lat = df_lonlat['lat']
+    
+    return lon, lat, de, te, sa, th, s0
 
 #==========================================
 # Function to load global topography
