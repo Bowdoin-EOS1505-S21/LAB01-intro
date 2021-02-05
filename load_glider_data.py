@@ -16,7 +16,6 @@ pyferret.addenv(FER_DIR='/mnt/local/pyferret', FER_DAT='/mnt/local/FerretDataset
 pyferret.start(journal=False, quiet=True, unmapped=True)
 import numpy as np
 import pandas as pd
-import subprocess
 
 #==========================================
 # This is a very simple function for the
